@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillForge AI – Your Personal Skill Development Platform</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#151e32',
+                            900: '#0f172a',
+                            950: '#090d16',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom subtle scrollbars and smooth transitions */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.25);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.45);
+        }
+        .glass-panel {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.75; }
+            50% { opacity: 1; }
+        }
+        .animate-glow {
+            animation: pulseGlow 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white transition-colors duration-200">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Main App Shell -->
+    <div class="min-h-screen flex flex-col lg:flex-row">
+        
+        <!-- Mobile Header -->
+        <header class="lg:hidden flex items-center justify-between px-4 py-3 bg-white/80 dark:bg-slate-900/80 glass-panel border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25">
+                    <i data-lucide="cpu" class="w-5 h-5"></i>
+                </div>
+                <span class="font-bold text-lg tracking-tight">SkillForge <span class="text-cyan-500">AI</span></span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="toggleTheme()" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition" aria-label="Toggle theme">
+                    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+                    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+                </button>
+                <button onclick="toggleMobileMenu()" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300" aria-label="Open menu">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 transform -translate-x-full lg:translate-x-0 lg:static lg:inset-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800/80 flex flex-col justify-between transition-transform duration-300 ease-in-out">
+            <div>
+                <!-- Brand Header (Desktop) -->
+                <div class="hidden lg:flex items-center justify-between px-6 py-6 border-b border-slate-200/70 dark:border-slate-800/70">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+                            <i data-lucide="sparkles" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h1 class="font-bold text-lg tracking-tight leading-none">SkillForge <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">AI</span></h1>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">Adaptive Mastery Engine</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Level Mini Card -->
+                <div class="p-4 mx-4 mt-4 rounded-2xl bg-slate-100/80 dark:bg-slate-850 border border-slate-200/80 dark:border-slate-800">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-inner" id="sidebar-avatar">
+                                AR
+                            </div>
+                            <div>
+                                <div class="text-sm font-semibold leading-tight" id="sidebar-username">Alex Rivera</div>
+                                <div class="text-xs text-indigo-600 dark:text-cyan-400 font-medium" id="sidebar-level-badge">Level 4 • Builder</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold" title="Daily Streak">
+                            <i data-lucide="flame" class="w-3.5 h-3.5 fill-current"></i>
+                            <span id="sidebar-streak">12</span>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="flex justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
+                            <span id="sidebar-xp-text">1,850 XP</span>
+                            <span id="sidebar-next-xp">2,500 XP</span>
+                        </div>
+                        <div class="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                            <div id="sidebar-xp-bar" class="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 rounded-full transition-all duration-500" style="width: 74%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Links -->
+                <nav class="px-4 mt-6 space-y-1.5" aria-label="Main Navigation">
+                    <button onclick="switchTab('dashboard')" data-tab="dashboard" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                        <span>Dashboard Overview</span>
+                    </button>
+                    <button onclick="switchTab('roadmap')" data-tab="roadmap" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all">
+                        <i data-lucide="map" class="w-4 h-4"></i>
+                        <span>AI Roadmap Studio</span>
+                        <span class="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-semibold">AI</span>
+                    </button>
+                    <button onclick="switchTab('quiz')" data-tab="quiz" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all">
+                        <i data-lucide="terminal" class="w-4 h-4"></i>
+                        <span>Practice & Quiz Lab</span>
+                    </button>
+                    <button onclick="switchTab('mentor')" data-tab="mentor" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all">
+                        <i data-lucide="bot" class="w-4 h-4"></i>
+                        <span>AI Mentor Chat</span>
+                        <span class="ml-auto w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                    </button>
+                    <button onclick="switchTab('passport')" data-tab="passport" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all">
+                        <i data-lucide="award" class="w-4 h-4"></i>
+                        <span>Skill Passport</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Sidebar Footer -->
+            <div class="p-4 border-t border-slate-200/70 dark:border-slate-800/70 space-y-2">
+                <div class="flex items-center justify-between px-2">
+                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Appearance</span>
+                    <button onclick="toggleTheme()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-medium transition">
+                        <i data-lucide="sun" class="w-3.5 h-3.5 hidden dark:inline text-amber-400"></i>
+                        <i data-lucide="moon" class="w-3.5 h-3.5 inline dark:hidden text-indigo-600"></i>
+                        <span class="dark:hidden">Dark Mode</span>
+                        <span class="hidden dark:inline">Light Mode</span>
+                    </button>
+                </div>
+                <button onclick="openProfileModal()" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800/70 text-xs font-medium text-slate-600 dark:text-slate-300 transition">
+                    <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+                    <span>Customize Profile & Reset</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Mobile Backdrop -->
+        <div id="mobile-backdrop" onclick="toggleMobileMenu()" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-30 hidden lg:hidden"></div>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 min-w-0 overflow-y-auto">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+
+                <!-- ========================================== -->
+                <!-- TAB 1: DASHBOARD OVERVIEW                  -->
+                <!-- ========================================== -->
+                <section id="tab-dashboard" class="tab-content space-y-6">
+                    <!-- Top Welcome & Daily Check-in Banner -->
+                    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-slate-900 p-6 sm:p-8 text-white shadow-xl shadow-indigo-950/20">
+                        <div class="absolute -right-12 -top-12 w-64 h-64 bg-cyan-400/20 rounded-full blur-3xl pointer-events-none"></div>
+                        <div class="absolute right-24 -bottom-16 w-48 h-48 bg-indigo-400/20 rounded-full blur-2xl pointer-events-none"></div>
+                        
+                        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <div class="space-y-2 max-w-2xl">
+                                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs font-medium text-cyan-200">
+                                    <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                                    <span id="dash-active-track-pill">Active Track: AI / ML Engineering</span>
+                                </div>
+                                <h2 class="text-2xl sm:text-3xl font-bold tracking-tight">Welcome back, <span id="dash-greeting-name">Alex</span>! Ready to forge new skills?</h2>
+                                <p class="text-indigo-100/90 text-sm sm:text-base">You're 650 XP away from reaching Level 5. Complete your daily focus sprint or take an adaptive lab to keep your 12-day streak alive.</p>
+                            </div>
+                            <div class="flex flex-wrap sm:flex-nowrap gap-3 shrink-0">
+                                <button id="btn-daily-checkin" onclick="claimDailyStreak()" class="px-4 py-3 rounded-xl bg-white text-indigo-950 font-semibold text-sm hover:bg-cyan-50 transition shadow-lg flex items-center gap-2">
+                                    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+                                    <span>Claim Daily +100 XP</span>
+                                </button>
+                                <button onclick="switchTab('roadmap')" class="px-4 py-3 rounded-xl bg-indigo-500/40 hover:bg-indigo-500/60 border border-white/20 text-white font-semibold text-sm transition flex items-center gap-2">
+                                    <i data-lucide="compass" class="w-4 h-4"></i>
+                                    <span>View Roadmap</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KPI Metrics Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                        <!-- Streak Card -->
+                        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Learning Streak</p>
+                                <div class="flex items-baseline gap-2 mt-1">
+                                    <span class="text-2xl font-bold" id="kpi-streak">12 Days</span>
+                                    <span class="text-xs font-semibold text-emerald-500">+2 vs last wk</span>
+                                </div>
+                                <div class="flex gap-1 mt-3" id="streak-dots">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                                <i data-lucide="flame" class="w-6 h-6 fill-current"></i>
+                            </div>
+                        </div>
+
+                        <!-- Total XP Card -->
+                        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Experience</p>
+                                <div class="flex items-baseline gap-2 mt-1">
+                                    <span class="text-2xl font-bold" id="kpi-xp">1,850 XP</span>
+                                    <span class="text-xs font-semibold text-cyan-500" id="kpi-level">Lvl 4</span>
+                                </div>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-2.5" id="kpi-xp-sub">Top 14% of learners this week</p>
+                            </div>
+                            <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
+                                <i data-lucide="trophy" class="w-6 h-6"></i>
+                            </div>
+                        </div>
+
+                        <!-- Milestones Completed -->
+                        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Roadmap Progress</p>
+                                <div class="flex items-baseline gap-2 mt-1">
+                                    <span class="text-2xl font-bold" id="kpi-milestones">5 / 12</span>
+                                    <span class="text-xs font-semibold text-indigo-500" id="kpi-milestone-pct">42%</span>
+                                </div>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-2.5">Milestones completed</p>
+                            </div>
+                            <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-500 flex items-center justify-center">
+                                <i data-lucide="check-square" class="w-6 h-6"></i>
+                            </div>
+                        </div>
+
+                        <!-- Quiz Accuracy -->
+                        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Lab Accuracy</p>
+                                <div class="flex items-baseline gap-2 mt-1">
+                                    <span class="text-2xl font-bold" id="kpi-accuracy">88%</span>
+                                    <span class="text-xs font-semibold text-emerald-500" id="kpi-quizzes-taken">6 Labs</span>
+                                </div>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-2.5">Verified concept mastery</p>
+                            </div>
+                            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                                <i data-lucide="target" class="w-6 h-6"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Middle Row: Daily Focus Task + Active Skill Tracks -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        
+                        <!-- Daily Focus Sprint Card -->
+                        <div class="lg:col-span-1 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 flex flex-col justify-between shadow-sm">
+                            <div>
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">
+                                        <i data-lucide="crosshair" class="w-4 h-4"></i>
+                                        Daily Focus Task
+                                    </span>
+                                    <span class="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">25 min</span>
+                                </div>
+                                <h3 class="text-lg font-bold leading-snug" id="daily-task-title">Build a RAG Pipeline Chunking Evaluator</h3>
+                                <p class="text-sm text-slate-600 dark:text-slate-400 mt-2 leading-relaxed" id="daily-task-desc">
+                                    Compare semantic chunking vs. fixed-token overlap on technical documentation and measure retrieval recall@5.
+                                </p>
+
+                                <!-- Interactive Pomodoro / Focus Timer -->
+                                <div class="mt-5 p-4 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200/70 dark:border-slate-800 flex items-center justify-between">
+                                    <div>
+                                        <div class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Focus Timer</div>
+                                        <div class="text-2xl font-mono font-bold text-indigo-600 dark:text-cyan-400" id="focus-timer-display">25:00</div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button onclick="toggleFocusTimer()" id="focus-timer-btn" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition flex items-center gap-1.5">
+                                            <i data-lucide="play" class="w-3.5 h-3.5"></i>
+                                            <span>Start</span>
+                                        </button>
+                                        <button onclick="resetFocusTimer()" class="p-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition" title="Reset Timer">
+                                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+                                <button onclick="completeDailyFocusTask()" id="btn-complete-focus" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm transition flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20">
+                                    <i data-lucide="check" class="w-4 h-4"></i>
+                                    <span>Mark Complete (+150 XP)</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Active Skill Tracks with Progress Rings/Bars -->
+                        <div class="lg:col-span-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 shadow-sm">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
+                                <div>
+                                    <h3 class="text-lg font-bold">Active Skill Tracks</h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">Real-time competency progression across your core domains</p>
+                                </div>
+                                <button onclick="switchTab('roadmap')" class="text-xs font-semibold text-indigo-600 dark:text-cyan-400 hover:underline flex items-center gap-1">
+                                    <span>Generate New Track</span>
+                                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+
+                            <div id="active-tracks-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Populated via JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity & Quick Actions -->
+                    <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 shadow-sm">
+                        <h3 class="text-base font-bold mb-4">Recent Learning Activity</h3>
+                        <div id="activity-feed" class="space-y-3">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ========================================== -->
+                <!-- TAB 2: AI SKILL ASSESSMENT & ROADMAP       -->
+                <!-- ========================================== -->
+                <section id="tab-roadmap" class="tab-content hidden space-y-6">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold tracking-tight">AI Skill Assessment & Roadmap Generator</h2>
+                            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Configure your baseline and career target to synthesize a structured multi-week curriculum & gap analysis.</p>
+                        </div>
+                        <button onclick="toggleWizardPanel()" id="btn-toggle-wizard" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition flex items-center gap-2 self-start shadow-lg shadow-indigo-600/20">
+                            <i data-lucide="wand-2" class="w-4 h-4"></i>
+                            <span>Configure New Roadmap</span>
+                        </button>
+                    </div>
+
+                    <!-- Interactive Wizard Card -->
+                    <div id="roadmap-wizard-card" class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-lg">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- Step 1: Current Level -->
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">1. Current Experience Level</label>
+                                <select id="wiz-level" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="Beginner">Beginner / Career Switcher (0-1 yrs)</option>
+                                    <option value="Intermediate" selected>Intermediate Practitioner (1-3 yrs)</option>
+                                    <option value="Senior">Senior / Tech Lead (4+ yrs)</option>
+                                </select>
+                            </div>
+
+                            <!-- Step 2: Target Role / Domain -->
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">2. Target Role / Skill Track</label>
+                                <select id="wiz-role" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="AI/ML Engineering" selected>AI / ML Engineering (LLMs & Agents)</option>
+                                    <option value="Full-Stack Engineering">Full-Stack Web Engineering (Next.js & Cloud)</option>
+                                    <option value="Product Management">AI Product Management & Strategy</option>
+                                    <option value="Data Science">Data Science & Causal Analytics</option>
+                                    <option value="UX/UI Design">Product UX/UI & Design Systems</option>
+                                    <option value="Cybersecurity">Cloud Cybersecurity & AppSec</option>
+                                </select>
+                            </div>
+
+                            <!-- Step 3: Weekly Commitment -->
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">3. Weekly Study Hours</label>
+                                    <span id="wiz-hours-val" class="text-sm font-bold text-indigo-600 dark:text-cyan-400">10 hrs/wk</span>
+                                </div>
+                                <input type="range" id="wiz-hours" min="4" max="25" value="10" oninput="document.getElementById('wiz-hours-val').textContent = this.value + ' hrs/wk'" class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600 mt-3">
+                                <div class="flex justify-between text-[11px] text-slate-400 mt-1.5">
+                                    <span>4h (Light)</span>
+                                    <span>12h (Balanced)</span>
+                                    <span>25h (Intensive)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Current Skills Checkboxes for Gap Analysis -->
+                        <div class="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">4. Select Skills You Already Possess (For Accurate Gap Analysis)</label>
+                            <div class="flex flex-wrap gap-2" id="wiz-existing-skills">
+                                <!-- Populated via JS -->
+                            </div>
+                        </div>
+
+                        <div class="mt-6 flex flex-wrap items-center justify-between gap-4">
+                            <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                                <i data-lucide="sparkles" class="w-4 h-4 text-cyan-500"></i>
+                                <span>Uses Gemini AI synthesis with structured curriculum fallback</span>
+                            </div>
+                            <button onclick="generateAIRoadmap()" id="btn-generate-roadmap" class="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-semibold text-sm shadow-lg shadow-indigo-500/25 transition flex items-center gap-2">
+                                <i data-lucide="cpu" class="w-4 h-4"></i>
+                                <span>Synthesize Personalized Roadmap</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Generated Roadmap & Skill Gap Analysis Output -->
+                    <div id="roadmap-output" class="space-y-6">
+                        <!-- Skill Gap Analysis Banner -->
+                        <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 shadow-sm">
+                            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2.5 py-0.5 rounded-md bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-xs font-bold" id="rm-badge-role">AI/ML Engineering</span>
+                                        <span class="text-xs text-slate-500 dark:text-slate-400" id="rm-meta">Intermediate • 10 hrs/week • 4-Week Blueprint</span>
+                                    </div>
+                                    <h3 class="text-xl font-bold mt-1.5" id="rm-title">Production LLM Systems & Agentic Workflows</h3>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="text-right">
+                                        <div class="text-xs text-slate-500">Readiness Score</div>
+                                        <div class="text-xl font-bold text-indigo-600 dark:text-cyan-400" id="rm-readiness">64%</div>
+                                    </div>
+                                    <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-cyan-400 font-bold">
+                                        <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Gap Analysis Columns -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-5">
+                                <div class="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 mb-2.5">
+                                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                        Verified Strengths
+                                    </h4>
+                                    <div id="rm-strengths" class="flex flex-wrap gap-2"></div>
+                                </div>
+                                <div class="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1.5 mb-2.5">
+                                        <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                                        Priority Skill Gaps to Close
+                                    </h4>
+                                    <div id="rm-gaps" class="flex flex-wrap gap-2"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Multi-Week Timeline Cards -->
+                        <div id="roadmap-weeks-container" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ========================================== -->
+                <!-- TAB 3: INTERACTIVE PRACTICE & QUIZ STUDIO  -->
+                <!-- ========================================== -->
+                <section id="tab-quiz" class="tab-content hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold tracking-tight">Interactive Practice & AI Quiz Studio</h2>
+                            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Test your architectural reasoning, debug real scenarios, and earn XP toward verified badges.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-3 py-1.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 text-xs font-bold">
+                                +50 XP per correct answer
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Topic Selector Pills -->
+                    <div id="quiz-topic-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Populated via JS -->
+                    </div>
+
+                    <!-- Active Quiz Arena -->
+                    <div id="quiz-arena" class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-lg">
+                        <!-- Quiz Header -->
+                        <div class="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800">
+                            <div>
+                                <span class="text-xs font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400" id="quiz-current-topic">AI/ML Engineering</span>
+                                <h3 class="text-lg font-bold mt-0.5" id="quiz-question-counter">Question 1 of 4</h3>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-36 h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                    <div id="quiz-progress-bar" class="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-300" style="width: 25%"></div>
+                                </div>
+                                <span class="text-xs font-mono font-bold text-slate-500" id="quiz-score-pill">Score: 0</span>
+                            </div>
+                        </div>
+
+                        <!-- Question Body -->
+                        <div id="quiz-body" class="mt-6 space-y-5">
+                            <p class="text-base sm:text-lg font-semibold leading-relaxed" id="quiz-question-text">
+                                Loading scenario...
+                            </p>
+
+                            <!-- Optional Code / Scenario Block -->
+                            <pre id="quiz-code-block" class="hidden p-4 rounded-2xl bg-slate-950 text-cyan-300 font-mono text-xs sm:text-sm overflow-x-auto border border-slate-800"></pre>
+
+                            <!-- Answer Options -->
+                            <div id="quiz-options" class="space-y-3">
+                                <!-- Populated via JS -->
+                            </div>
+
+                            <!-- Instant Explanation Box -->
+                            <div id="quiz-explanation" class="hidden p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 text-sm leading-relaxed">
+                                <div class="font-bold flex items-center gap-2 mb-1" id="quiz-feedback-title"></div>
+                                <p class="text-slate-600 dark:text-slate-300" id="quiz-explanation-text"></p>
+                            </div>
+
+                            <!-- Navigation Controls -->
+                            <div class="pt-4 flex items-center justify-between">
+                                <button onclick="askMentorAboutQuestion()" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition flex items-center gap-2">
+                                    <i data-lucide="bot" class="w-4 h-4 text-indigo-500"></i>
+                                    <span>Ask AI Mentor to Explain Deeply</span>
+                                </button>
+                                <button id="btn-quiz-next" onclick="nextQuizQuestion()" disabled class="px-6 py-2.5 rounded-xl bg-indigo-600 disabled:opacity-40 hover:bg-indigo-500 text-white text-sm font-semibold transition flex items-center gap-2">
+                                    <span>Next Question</span>
+                                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
